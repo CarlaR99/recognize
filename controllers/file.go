@@ -232,7 +232,7 @@ func FileUpload2(w http.ResponseWriter, r *http.Request) {
 }
 
 func FileUpload(car http.ResponseWriter, la *http.Request) {
-	filename := "cedula.png"
+	filename := "controllers/cedula.png"
 	infile, err := os.Open(filename)
 	render := marmoset.Render(car, true)
 
@@ -260,19 +260,18 @@ func FileUpload(car http.ResponseWriter, la *http.Request) {
 	for x := 0; x < w; x++ {
 		for y := 0; y < h; y++ {
 			imageColor := imgSrc.At(x, y)
-			rr, gg, bb, aa := imageColor.RGBA()
+			rr, gg, bb, _ := imageColor.RGBA()
 			r := math.Pow(float64(rr), 2.2)
 			g := math.Pow(float64(gg), 2.2)
 			b := math.Pow(float64(bb), 2.2)
-			a := math.Pow(float64(aa), 2.2)
-			m := math.Pow(0.2125*r+0.7154*g+0.0721*b+0.0721*a, 1/2.2)
+			m := math.Pow(0.2125*r+0.7154*g+0.0721*b, 1/2.2)
 			Y := uint16(m + 0.5)
-			grayColor := color.Gray16{Y >> 8}
+			grayColor := color.Gray{uint8(Y >> 8)}
 			grayScale.Set(x, y, grayColor)
 		}
 	}
-	dstImage := imaging.AdjustContrast(grayScale, 20)
-	dstImage2 := imaging.AdjustBrightness(dstImage, 20)
+	dstImage := imaging.AdjustContrast(grayScale, 40)
+	dstImage2 := imaging.AdjustBrightness(dstImage, -20)
 
 	// Encode the grayscale image to the new file
 	newFileName := "grayscale-cedula.png"
