@@ -1,15 +1,20 @@
 package controllers
 
 import (
+"github.com/disintegration/imaging"
 	"image"
+	"image/color"
 	"image/png"
 	"io"
 	"io/ioutil"
+	"log"
+	"math"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
-
+	"strconv"
+	
 	"github.com/otiai10/gosseract/v2"
 	"github.com/otiai10/marmoset"
 )
@@ -18,35 +23,66 @@ var (
 	imgexp = regexp.MustCompile("^image")
 )
 
-func rgbaToGray(img image.Image) *image.Gray {
-	var (
-		bounds = img.Bounds()
-		gray   = image.NewGray(bounds)
-	)
-	for x := 0; x < bounds.Max.X; x++ {
-		for y := 0; y < bounds.Max.Y; y++ {
-			var rgba = img.At(x, y)
-			gray.Set(x, y, rgba)
-		}
-	}
-	return gray
-}
+// FileUpload ...
+func FileUpload(car http.ResponseWriter, la *http.Request) {
+	render := marmoset.Render(car, true)
+	filename := "controllers/cedula.png"
+	infile, err := os.Open(filename)
 
-func loadImage(filepath string) (image.Image, error) {
-	infile, err := os.Open(filepath)
 	if err != nil {
-		return nil, err
+		log.Printf("failed opening %s: %s", filename, err)
+		panic(err.Error())
 	}
 	defer infile.Close()
-	img, _, err := image.Decode(infile)
+	newOffset, err := infile.Seek(0, 0)
+	log.Printf(strconv.FormatInt(newOffset, 10))
 	if err != nil {
-		return nil, err
+		log.Printf("failed en la solucion %s: %s", filename, err)
+		panic(err.Error())
 	}
-	return img, nil
-}
 
-// FileUpload ...
-func FileUpload(w http.ResponseWriter, r *http.Request) {
+	imgSrc, _, err := image.Decode(infile)
+	if err != nil {
+log.Printf("failed decoding %s: %s", filename, err)
+		panic(err.Error())
+	}
+
+	// Create a new grayscale image
+	bounds := imgSrc.Bounds()
+	w, h := bounds.Max.X, bounds.Max.Y
+	grayScale := image.NewGray(image.Rectangle{image.Point{0, 0}, image.Point{w, h}})
+	for x := 0; x < w; x++ {
+		for y := 0; y < h; y++ {
+			imageColor := imgSrc.At(x, y)
+			rr, gg, bb, _ := imageColor.RGBA()
+			r := math.Pow(float64(rr), 2.2)
+			g := math.Pow(float64(gg), 2.2)
+			b := math.Pow(float64(bb), 2.2)
+			m := math.Pow(0.2125*r+0.7154*g+0.0721*b, 1/2.2)
+			Y := uint16(m + 0.5)
+			grayColor := color.Gray{uint8(Y >> 8)}			
+			grayScale.Set(x, y, grayColor)
+		}
+	}
+//dstImage := imaging.AdjustContrast(grayScale, 40)
+	// Encode the grayscale image to the new file
+	dstImage := imaging.AdjustContrast(grayScale, 40)
+	dstImage2 := imaging.AdjustBrightness(dstImage, -20)
+
+	newFileName := "grayscale.png"
+	newfile, err := os.Create(newFileName)
+	if err != nil {
+		log.Printf("failed creating %s: %s", newfile, err)
+		panic(err.Error())
+	}
+	defer newfile.Close()
+	png.Encode(newfile, dstImage2)
+	render.JSON(http.StatusOK, map[string]interface{}{
+		"result":  newfile.Name(),
+		"version": 1.0,
+	})
+}
+func FileUpload3(w http.ResponseWriter, r *http.Request) {
 
 	render := marmoset.Render(w, true)
 
@@ -66,22 +102,61 @@ func FileUpload(w http.ResponseWriter, r *http.Request) {
 		render.JSON(http.StatusBadRequest, err)
 		return
 	}
+
+	infile, err := os.Open(tempfile.Name())
+
+	if err != nil {
+		log.Printf("failed opening %s: %s", tempfile.Name(), err)
+		panic(err.Error())
+	}
+	defer infile.Close()
+	newOffset, err := infile.Seek(0, 0)
+	log.Printf(strconv.FormatInt(newOffset, 10))
+	if err != nil {
+		log.Printf("failed en la solucion %s: %s", tempfile.Name(), err)
+		panic(err.Error())
+	}
+	imgSrc, _, err := image.Decode(infile)
+	if err != nil {
+		log.Printf("failed decoding %s: %s", tempfile.Name(), err)
+		panic(err.Error())
+	}
+
+	// Create a new grayscale image
+	bounds := imgSrc.Bounds()
+	yy, h := bounds.Max.X, bounds.Max.Y
+	grayScale := image.NewGray(image.Rectangle{image.Point{0, 0}, image.Point{yy, h}})
+	for x := 0; x < yy; x++ {
+		for y := 0; y < h; y++ {
+			imageColor := imgSrc.At(x, y)
+			rr, gg, bb, _ := imageColor.RGBA()
+			r := math.Pow(float64(rr), 2.2)
+			g := math.Pow(float64(gg), 2.2)
+			b := math.Pow(float64(bb), 2.2)
+			m := math.Pow(0.2125*r+0.7154*g+0.0721*b, 1/2.2)
+			Y := uint16(m + 0.5)
+			grayColor := color.Gray{uint8(Y >> 8)}
+			grayScale.Set(x, y, grayColor)
+		}
+	}
+
+	// Encode the grayscale image to the new file
+	newFileName := "grayscale2.png"
+	newfile, err := os.Create(newFileName)
+	if err != nil {
+		log.Printf("failed creating %s: %s", newfile, err)
+		panic(err.Error())
+	}
+	defer newfile.Close()
+	png.Encode(newfile, grayScale)
+
 	defer func() {
 		tempfile.Close()
 		os.Remove(tempfile.Name())
 	}()
 
-	var img, _ = loadImage(tempfile.Name())
-	var gray = rgbaToGray(img)
-
-	// Save as gray.png
-	f, _ := os.Create("gray.png")
-	defer f.Close()
-	png.Encode(f, gray)
-	w.Write([]byte("JEJE SALUDOS"))
-
 	// Make uploaded physical
-	if _, err = io.Copy(tempfile, upload); err != nil {
+	if _, err = io.Copy(tempfile, newfile); err != nil {
 		render.JSON(http.StatusInternalServerError, err)
 		return
 	}
@@ -89,8 +164,7 @@ func FileUpload(w http.ResponseWriter, r *http.Request) {
 	client := gosseract.NewClient()
 	defer client.Close()
 
-	//client.SetImage(tempfile.Name())
-	client.SetImage("gray.png")
+	client.SetImage(tempfile.Name())
 	client.Languages = []string{"eng"}
 	if langs := r.FormValue("languages"); langs != "" {
 		client.Languages = strings.Split(langs, ",")
