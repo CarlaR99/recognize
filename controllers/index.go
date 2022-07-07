@@ -1,14 +1,18 @@
 package controllers
 
 import (
+	"fmt"
+	"html/template"
 	"net/http"
-
-	"github.com/otiai10/marmoset"
 )
 
 // Index ...
 func Index(w http.ResponseWriter, r *http.Request) {
-	marmoset.Render(w).HTML("index", map[string]interface{}{
-		"AppName": "Recognize App",
-	})
+	fmt.Println("PASO??")
+	fmt.Println(w)
+	//var sherrifTmpl = template.New("index.html").Delims("{[{", "}]}")
+	template.Must(template.ParseFiles("app/views/index.html")).ExecuteTemplate(w, "index.html", r)
+	//marmoset.Render(w).HTML("index", map[string]interface{}{
+	//	"AppName": "Recognize App",
+	//})
 }
