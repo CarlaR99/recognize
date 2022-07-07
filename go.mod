@@ -7,5 +7,6 @@ require (
 	github.com/otiai10/gosseract/v2 v2.3.1
 	github.com/otiai10/marmoset v0.7.0
 	github.com/otiai10/mint v1.3.3
+	github.com/vitali-fedulov/images/v2 v2.1.3 // indirect
 	golang.org/x/image v0.0.0-20220617043117-41969df76e82 // indirect
 )

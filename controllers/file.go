@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/disintegration/imaging"
 	"github.com/otiai10/gosseract/v2"
 	"github.com/otiai10/marmoset"
+	"github.com/vitali-fedulov/images/v2"
 	"image"
 	"image/color"
 	"image/png"
@@ -20,6 +22,7 @@ import (
 
 var (
 	imgexp = regexp.MustCompile("^image")
+	text   = ""
 )
 
 // FileUpload ...
@@ -231,7 +234,7 @@ func FileUpload2(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func FileUpload(car http.ResponseWriter, la *http.Request) {
+func FileUpload3(car http.ResponseWriter, la *http.Request) {
 	filename := "controllers/cedula.png"
 	infile, err := os.Open(filename)
 	render := marmoset.Render(car, true)
@@ -284,6 +287,34 @@ func FileUpload(car http.ResponseWriter, la *http.Request) {
 	png.Encode(newfile, dstImage2)
 	render.JSON(http.StatusOK, map[string]interface{}{
 		"result":  newfile.Name(),
+		"version": 1.0,
+	})
+}
+func FileUpload(car http.ResponseWriter, la *http.Request) {
+	render := marmoset.Render(car, true)
+	// Open photos.
+	imgA, err := images.Open("controllers/photoA.png")
+	if err != nil {
+		panic(err)
+	}
+	imgB, err := images.Open("controllers/photoB.png")
+	if err != nil {
+		panic(err)
+	}
+
+	// Calculate hashes and image sizes.
+	hashA, imgSizeA := images.Hash(imgA)
+	hashB, imgSizeB := images.Hash(imgB)
+	// Image comparison.
+	if images.Similar(hashA, hashB, imgSizeA, imgSizeB) {
+		fmt.Println("Images are similar.")
+		text = "Images are similar."
+	} else {
+		fmt.Println("Images are distinct.")
+		text = "Images are distinct."
+	}
+	render.JSON(http.StatusOK, map[string]interface{}{
+		"result":  text,
 		"version": 1.0,
 	})
 }
