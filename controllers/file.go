@@ -124,7 +124,7 @@ var (
 //	})
 //}
 
-func FileUpload2(w http.ResponseWriter, r *http.Request) {
+func FileUpload3(w http.ResponseWriter, r *http.Request) {
 
 	render := marmoset.Render(w, true)
 
@@ -234,7 +234,8 @@ func FileUpload2(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func FileUpload3(car http.ResponseWriter, la *http.Request) {
+func FileUpload2(car http.ResponseWriter, la *http.Request) {
+
 	filename := "controllers/cedula.png"
 	infile, err := os.Open(filename)
 	render := marmoset.Render(car, true)

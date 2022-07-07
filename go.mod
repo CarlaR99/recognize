@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/disintegration/imaging v1.6.2 // indirect
+	github.com/leandroveronezi/go-recognizer v1.0.0 // indirect
 	github.com/otiai10/gosseract/v2 v2.3.1
 	github.com/otiai10/marmoset v0.7.0
 	github.com/otiai10/mint v1.3.3
