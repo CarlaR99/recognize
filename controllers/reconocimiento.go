@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 )
 
-const fotosDir = "fotos"
-const dataDir = "models"
+const fotosDir = "controllers"
+const dataDir = "controllers"
 
 func addFile(rec *recognizer.Recognizer, Path, Id string) {
 
@@ -36,7 +36,7 @@ func Recog(w http.ResponseWriter, r *http.Request) {
 	rec.UseCNN = false
 	defer rec.Close()
 
-	addFile(&rec, filepath.Join(fotosDir, "controllers/photoB.png"), "Robert")
+	addFile(&rec, filepath.Join(fotosDir, "photoB.png"), "Robert")
 	//addFile(&rec, filepath.Join(fotosDir, "bernadette.jpg"), "Bernadette")
 	//addFile(&rec, filepath.Join(fotosDir, "howard.jpg"), "Howard")
 	//addFile(&rec, filepath.Join(fotosDir, "penny.jpg"), "Penny")
@@ -46,14 +46,14 @@ func Recog(w http.ResponseWriter, r *http.Request) {
 
 	rec.SetSamples()
 
-	faces, err := rec.ClassifyMultiples(filepath.Join(fotosDir, "controllers/photoA.png"))
+	faces, err := rec.ClassifyMultiples(filepath.Join(fotosDir, "photoA.png"))
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	img, err := rec.DrawFaces(filepath.Join(fotosDir, "controllers/photoA.png"), faces)
+	img, err := rec.DrawFaces(filepath.Join(fotosDir, "photoA.png"), faces)
 
 	if err != nil {
 		fmt.Println(err)

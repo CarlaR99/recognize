@@ -3,6 +3,7 @@ module github.com/otiai10/ocrserver
 go 1.12
 
 require (
+	github.com/SAP/go-dblib v0.0.0-20220308071006-4bd3dc16c642 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/leandroveronezi/go-recognizer v1.0.0 // indirect
 	github.com/otiai10/gosseract/v2 v2.3.1
