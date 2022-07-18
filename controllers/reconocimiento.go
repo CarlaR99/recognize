@@ -5,6 +5,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/leandroveronezi/go-recognizer"
 	"path/filepath"
+	"github.com/kataras/iris/v12/context"
 )
 
 const fotosDir = "controllers"
@@ -24,7 +25,7 @@ func addFile(rec *recognizer.Recognizer, Path, Id string) {
 func Recog(ctx iris.Context) {
 
 	rec := recognizer.Recognizer{}
-	err := rec.Init(dataDir)
+	err := rec.Init(fotosDir)
 
 	if err != nil {
 		ctx.StatusCode(iris.StatusInternalServerError)
@@ -65,5 +66,6 @@ func Recog(ctx iris.Context) {
 	}
 
 	ctx.StatusCode(iris.StatusOK)
-
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(context.Map{"response": "Exitoso"})
 }
