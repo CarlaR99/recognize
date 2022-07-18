@@ -2,13 +2,13 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/kataras/iris/v12"
 	"github.com/leandroveronezi/go-recognizer"
-	"net/http"
 	"path/filepath"
 )
 
 const fotosDir = "controllers"
-const dataDir = "controllers"
+const dataDir = "models"
 
 func addFile(rec *recognizer.Recognizer, Path, Id string) {
 
@@ -21,13 +21,14 @@ func addFile(rec *recognizer.Recognizer, Path, Id string) {
 
 }
 
-func Recog(w http.ResponseWriter, r *http.Request) {
+func Recog(ctx iris.Context) {
 
 	rec := recognizer.Recognizer{}
 	err := rec.Init(dataDir)
 
 	if err != nil {
-		fmt.Println(err)
+		ctx.StatusCode(iris.StatusInternalServerError)
+		fmt.Println(err.Error())		
 		return
 	}
 
@@ -37,29 +38,32 @@ func Recog(w http.ResponseWriter, r *http.Request) {
 	defer rec.Close()
 
 	addFile(&rec, filepath.Join(fotosDir, "photoB.png"), "Robert")
-	//addFile(&rec, filepath.Join(fotosDir, "bernadette.jpg"), "Bernadette")
-	//addFile(&rec, filepath.Join(fotosDir, "howard.jpg"), "Howard")
-	//addFile(&rec, filepath.Join(fotosDir, "penny.jpg"), "Penny")
-	//addFile(&rec, filepath.Join(fotosDir, "raj.jpg"), "Raj")
-	//addFile(&rec, filepath.Join(fotosDir, "sheldon.jpg"), "Sheldon")
-	//addFile(&rec, filepath.Join(fotosDir, "leonard.jpg"), "Leonard")
 
 	rec.SetSamples()
 
 	faces, err := rec.ClassifyMultiples(filepath.Join(fotosDir, "photoA.png"))
 
 	if err != nil {
-		fmt.Println(err)
+		ctx.StatusCode(iris.StatusInternalServerError)
+                fmt.Println(err.Error())		
 		return
 	}
 
 	img, err := rec.DrawFaces(filepath.Join(fotosDir, "photoA.png"), faces)
 
 	if err != nil {
-		fmt.Println(err)
+		ctx.StatusCode(iris.StatusInternalServerError)
+                fmt.Println(err.Error())
 		return
 	}
 
-	rec.SaveImage("controllers/faces.jpg", img)
+	err = rec.SaveImage("controllers/faces.jpg", img)
+	if err != nil {
+		ctx.StatusCode(iris.StatusInternalServerError)
+                fmt.Println(err.Error())		
+		return 
+	}
+
+	ctx.StatusCode(iris.StatusOK)
 
 }

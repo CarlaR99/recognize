@@ -57,23 +57,23 @@ window.onload = () => {
 
   var generateRequest = () => {
     var req = {path: "", data: null};
-    if (ui.file.files && ui.file.files.length != 0) {
+//    if (!ui.file.files && ui.file.files.length == 0) {
       req.path = "/file";
       req.data = new FormData();
       if (ui.langs.value) req.data.append("languages", ui.langs.value);
       if (ui.whitelist.value) req.data.append("whitelist", ui.whitelist.value);
       if (ui.hocr.checked) req.data.append("format", "hocr");
-      req.data.append("file", ui.file.files[0]);
-    } else if (/^data:.+/.test(ui.image.src)) {
-      req.path = "/base64";
-      var data = {base64: ui.image.src};
-      if (ui.langs.value) data["languages"] = ui.langs.value;
-      if (ui.whitelist.value) data["whitelist"] = ui.whitelist.value;
-      if (ui.hocr.checked) data["format"] = "hocr";
-      req.data = JSON.stringify(data);
-    } else {
-      return window.alert("no image input set");
-    }
+     // req.data.append("file", ui.file.files[0]);
+  //  } else if (/^data:.+/.test(ui.image.src)) {
+    //  req.path = "/base64";
+      //var data = {base64: ui.image.src};
+      //if (ui.langs.value) data["languages"] = ui.langs.value;
+      //if (ui.whitelist.value) data["whitelist"] = ui.whitelist.value;
+      //if (ui.hocr.checked) data["format"] = "hocr";
+      //req.data = JSON.stringify(data);
+    //} else {
+      //return window.alert("no image input set");
+    //}
     return req;
   };
 };
