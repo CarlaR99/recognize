@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"mime/multipart"
 )
 
 var (
@@ -26,27 +27,29 @@ var (
 
 // FileUpload ...
 
-func FileUpload4()(resp bool) {
+func FileUpload4(file multipart.File, header *multipart.FileHeader) (resp bool, fileOut *os.File) {
+	fmt.Println("NAME FILE")
+	fmt.Println(header.Filename)
 	respData := true
-	filename := "controllers/cedula.png"
-	infile, err := os.Open(filename)
+	//filename := "controllers/cedula.png"
+	//infile, err := os.Open(filename)
 
-	if err != nil {
-		log.Printf("failed opening %s: %s", filename, err)
-		respData = false
-		fmt.Println(err.Error())
-	}
-	defer infile.Close()
-	newOffset, err := infile.Seek(0, 0)
+	//if err != nil {
+	//	log.Printf("failed opening %s: %s", filename, err)
+	//	respData = false
+	//	fmt.Println(err.Error())
+	//}
+	defer file.Close()
+	newOffset, err := file.Seek(0, 0)
 	log.Printf(strconv.FormatInt(newOffset, 10))
 	if err != nil {
-		log.Printf("failed en la solucion %s: %s", filename, err)
+		log.Printf("failed en la solucion %s: %s", header.Filename, err)
 		respData = false
 		fmt.Println(err.Error())
 	}
-	imgSrc, _, err := image.Decode(infile)
+	imgSrc, _, err := image.Decode(file)
 	if err != nil {
-		log.Printf("failed decoding %s: %s", filename, err)
+		log.Printf("failed decoding %s: %s", header.Filename, err)
 		respData = false
 		fmt.Println(err.Error())
 	}
@@ -79,22 +82,32 @@ func FileUpload4()(resp bool) {
 		respData = false
 		fmt.Println(err.Error())
 	}
-	defer newfile.Close()
+//	defer newfile.Close()
 	png.Encode(newfile, dstImage2)
 	fmt.Println(respData)
-	return respData
+	return respData, newfile
 }
 
+
 func FileUpload(ctx iris.Context) {
+	file, fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.StatusCode(iris.StatusInternalServerError)
+		fmt.Println(err.Error())
+		return
+	}
+	fmt.Println(fileHeader.Filename)
+	boolean, fileOut := FileUpload4(file, fileHeader)
 
-	if FileUpload4() {
-		filename := "grayscale-cedula.png"
-		infile, err := os.Open(filename)
+	if boolean {
+		//fmt.Println(fileHeader)
+		//filename := "grayscale-cedula.png"
+		infile, err := os.Open(fileOut.Name())
 
-		if err != nil {
-			log.Printf("failed opening %s: %s", filename, err)
-			fmt.Println(err.Error())
-		}
+		//if err != nil {
+		//	log.Printf("failed opening %s: %s", filename, err)
+		//	fmt.Println(err.Error())
+		//}
 		defer func(infile *os.File) {
 			err := infile.Close()
 			if err != nil {
@@ -155,20 +168,20 @@ func FileUpload(ctx iris.Context) {
 		//}
 
 		var out string
-		switch ctx.Request().FormValue("format") {
-		case "hocr":
-			out, err = client.HOCRText()
+		//switch ctx.Request().FormValue("format") {
+		//case "hocr":
+//		out, err = client.HOCRText()
 		//render.EscapeHTML = false
-		default:
-			out, err = client.Text()
-		}
+		//default:
+		out, err = client.Text()
+		//}
 		if err != nil {
 			ctx.StatusCode(iris.StatusInternalServerError)
 			fmt.Println(err.Error())
 			return
 		}
-//		fmt.Println("GUENAS?")
-//		fmt.Println(out)
+		//		fmt.Println("GUENAS?")
+		//		fmt.Println(out)
 
 		ctx.StatusCode(iris.StatusOK)
 		ctx.Header("Content-Type", "application/json")

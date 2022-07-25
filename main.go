@@ -16,7 +16,7 @@ func main() {
 	app.Post("/recognize", controllers.Recog)
 	app.HandleDir("/assets", "./app/assets")
 	
-	err := app.Run(iris.Addr(":8000"))
+	err := app.Run(iris.Addr(":5000"))
 	if err != nil {
 		return
 	}
