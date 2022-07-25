@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-const dataDir = "controllers"
+const dataDir = "utils"
 
 func addFile(rec *recognizer.Recognizer, Path, Id string) {
 
